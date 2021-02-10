@@ -56,7 +56,7 @@ const mongodbclient = new mongoClient("mongodb+srv://ankit123:asdfghjkl@cluster0
 
   var storage = multer.diskStorage({
     destination: (req, file, cb) => {
-      cb(null,'../Server/Upload');
+      cb(null,'../Upload');
     },
     filename: (req, file, cb) => {
        time = Date.now();
