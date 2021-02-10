@@ -56,7 +56,7 @@ const mongodbclient = new mongoClient("mongodb+srv://ankit123:asdfghjkl@cluster0
 
   var storage = multer.diskStorage({
     destination: (req, file, cb) => {
-      cb(null,'../public/Upload');
+      cb(null,'../Client/public/Upload');
     },
     filename: (req, file, cb) => {
        time = Date.now();
@@ -80,7 +80,7 @@ const mongodbclient = new mongoClient("mongodb+srv://ankit123:asdfghjkl@cluster0
     fileFilter:filefilter
   });
   
-  router.post('/getdata',upload.any('Upload'),(req,res,next) =>{
+  router.post('/getdata',upload.any('Upload'),(req,res1,next) =>{
   var str;
     console.log("hello");        
   console.log("Ya");
@@ -108,6 +108,7 @@ const mongodbclient = new mongoClient("mongodb+srv://ankit123:asdfghjkl@cluster0
       dbo.collection("Image_details").insertOne(myobj, function(err, res) {
         if (err) throw err;
         console.log("1 document inserted");
+        res1.send("Uploaded")
         str ="Done"
         mongodbclient.close();
         
@@ -194,25 +195,36 @@ const mongodbclient = new mongoClient("mongodb+srv://ankit123:asdfghjkl@cluster0
   });
 
 
-  app.post('/rate',function(req,res){
+  router.post('/rate',(req,res1)=>{
     console.log("Ya its running ");
     var rate = req.body.rate;
     var pic_name = req.body.pic_name;
     console.log(pic_name)
     const request=req
+
+
+
     async function run() {
-           await mongodbclient.connect();
+          try{ 
+          await mongodbclient.connect();
            console.log("connection is established !");
             // console.log("Connected correctly to server");
             const dbo = mongodbclient.db("mydb");
-            var myobj = { pic_name: pic_name,rate:rate};
-            dbo.collection("Image_details_rate").insertOne(myobj, function(err, res) {
+            var myobj = {$set:{ pic_name: pic_name,rate:rate}};
+            dbo.collection("Image_details_rate").updateMany({pic_name:pic_name},myobj,{upsert:true}, function(err, res) {
               if (err) throw err;
               console.log("1 document inserted");
               str ="Done"
-              mongodbclient.close();
+              res1.json({"mes":"Rating_given"})
+            
               
-          });}
+          });
+        
+    }
+    finally{
+
+    }
+  }
       
      run().catch(console.dir);  
   });
@@ -414,6 +426,10 @@ const mongodbclient = new mongoClient("mongodb+srv://ankit123:asdfghjkl@cluster0
 
 
     console.log("Hejllo")
+if(process.env.NODE_ENV==="production")
+{
+app.use(express.static('Client/build'))  
+}
 
 app.use('',router);
   app.listen(process.env.PORT||3005,()=>{
